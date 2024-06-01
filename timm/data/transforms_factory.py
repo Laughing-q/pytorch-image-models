@@ -292,7 +292,7 @@ def transforms_imagenet_eval(
         ]
     else:
         tfl += [
-            transforms.Resize(scale_size[0], interpolation=str_to_interp_mode(interpolation))
+            transforms.Resize(img_size, interpolation=str_to_interp_mode(interpolation))
         ]
         # default crop model is center
         # aspect ratio is preserved, crops center within image, no borders are added, image is lost
