@@ -136,12 +136,14 @@ def transforms_imagenet_train(
         scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
         ratio = tuple(ratio or (3. / 4., 4. / 3.))  # default imagenet ratio range
         primary_tfl = [
-            RandomResizedCropAndInterpolation(
-                img_size,
-                scale=scale,
-                ratio=ratio,
-                interpolation=interpolation,
-            )
+            # RandomResizedCropAndInterpolation(
+            #     img_size,
+            #     scale=scale,
+            #     ratio=ratio,
+            #     interpolation=interpolation,
+            # )
+            transforms.Resize((int(img_size[0] * 1.2), int(img_size[1] * 1.2))),
+            transforms.RandomCrop(img_size),
         ]
     if hflip > 0.:
         primary_tfl += [transforms.RandomHorizontalFlip(p=hflip)]
@@ -289,17 +291,20 @@ def transforms_imagenet_eval(
             CenterCropOrPad(img_size, fill=fill),
         ]
     else:
+        tfl += [
+            transforms.Resize(scale_size[0], interpolation=str_to_interp_mode(interpolation))
+        ]
         # default crop model is center
         # aspect ratio is preserved, crops center within image, no borders are added, image is lost
-        if scale_size[0] == scale_size[1]:
-            # simple case, use torchvision built-in Resize w/ shortest edge mode (scalar size arg)
-            tfl += [
-                transforms.Resize(scale_size[0], interpolation=str_to_interp_mode(interpolation))
-            ]
-        else:
-            # resize the shortest edge to matching target dim for non-square target
-            tfl += [ResizeKeepRatio(scale_size)]
-        tfl += [transforms.CenterCrop(img_size)]
+        # if scale_size[0] == scale_size[1]:
+        #     # simple case, use torchvision built-in Resize w/ shortest edge mode (scalar size arg)
+        #     tfl += [
+        #         transforms.Resize(scale_size[0], interpolation=str_to_interp_mode(interpolation))
+        #     ]
+        # else:
+        #     # resize the shortest edge to matching target dim for non-square target
+        #     tfl += [ResizeKeepRatio(scale_size)]
+        # tfl += [transforms.CenterCrop(img_size)]
 
     if use_prefetcher:
         # prefetcher and collate will handle tensor conversion and norm
